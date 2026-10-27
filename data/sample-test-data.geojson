@@ -1,0 +1,97 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "description": "Data Uji Terpisah (Sample Test Dataset) untuk Portal GIS Terpadu - Kabupaten Ende",
+    "purpose": "Digunakan untuk pengujian impor GeoJSON, styling warna, pengukuran, dan ekspor tanpa memodifikasi data produksi asli.",
+    "createdAt": "2026-10-27T00:00:00Z"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "TEST_MK_001",
+        "Nama": "Kantor Bupati Ende (Data Uji)",
+        "Kategori": "Kantor Bupati/Wali Kota",
+        "Deskripsi": "Titik uji administrasi pemerintahan Kabupaten Ende.",
+        "Icon": "fa-building-columns",
+        "Warna": "#0d6efd",
+        "UkuranMarker": 38,
+        "Status": "Active",
+        "Source": "Sample_Test_Data"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [121.65842, -8.84325]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "TEST_MK_002",
+        "Nama": "Puskesmas Kota Ende (Data Uji)",
+        "Kategori": "Puskesmas",
+        "Deskripsi": "Fasilitas layanan kesehatan masyarakat tingkat kecamatan.",
+        "Icon": "fa-house-medical",
+        "Warna": "#dc3545",
+        "UkuranMarker": 34,
+        "Status": "Active",
+        "Source": "Sample_Test_Data"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [121.66315, -8.83980]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "TEST_SH_001",
+        "Nama": "Zona Ruang Terbuka Hijau Kota (Data Uji)",
+        "Kategori": "Area Konservasi",
+        "Deskripsi": "Poligon uji area konservasi dan ruang terbuka hijau.",
+        "WarnaArea": "#198754",
+        "WarnaGaris": "#4dd4ac",
+        "Opacity": 0.4,
+        "KetebalanGaris": 3,
+        "Status": "Active",
+        "Source": "Sample_Test_Data"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [121.6595, -8.8415],
+            [121.6645, -8.8415],
+            [121.6645, -8.8375],
+            [121.6595, -8.8375],
+            [121.6595, -8.8415]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "ID": "TEST_SH_002",
+        "Nama": "Koridor Jalan Utama El Tari (Data Uji)",
+        "Kategori": "Jalan Raya / Nasional",
+        "Deskripsi": "Jalur uji jaringan jalan utama dalam kota.",
+        "WarnaArea": "#fd7e14",
+        "WarnaGaris": "#fd7e14",
+        "Opacity": 0.85,
+        "KetebalanGaris": 4,
+        "Status": "Active",
+        "Source": "Sample_Test_Data"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.6550, -8.8440],
+          [121.6590, -8.8425],
+          [121.6635, -8.8405],
+          [121.6675, -8.8380]
+        ]
+      }
+    }
+  ]
+}

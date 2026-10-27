@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Portal GIS Terpadu - Sistem Informasi Geografis Tata Ruang Wilayah</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- SPLASH SCREEN / LANDING PAGE -->
+    <div id="landing-splash" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="background: rgba(18, 18, 18, 0.88); backdrop-filter: blur(12px); z-index: 9999; transition: opacity 0.45s ease;">
+        <div class="text-center text-light px-4" style="max-width: 660px;">
+            <i class="fa-solid fa-earth-asia text-primary mb-3" style="font-size: 4.5rem; filter: drop-shadow(0 0 15px rgba(13,110,253,0.5));"></i>
+            <h1 class="fw-bold mb-2">Portal GIS Terpadu</h1>
+            <p class="mb-4 text-secondary" style="font-size: 1.05rem;">
+                Selamat datang di Sistem Informasi Geografis Tata Ruang Wilayah. Jelajahi batas administrasi, infrastruktur, penggunaan lahan, survei GPS lapangan, dan laporan kartografis secara interaktif.
+            </p>
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-3">
+                <button type="button" class="btn btn-primary px-4 py-2 fw-bold shadow-lg" onclick="closeLandingSplash()">
+                    <i class="fa-solid fa-map-location-dot me-2"></i> Mulai Jelajahi Peta
+                </button>
+                <button type="button" class="btn btn-outline-light px-4 py-2 fw-bold" onclick="closeLandingSplash(); modalLogin.show();">
+                    <i class="fa-solid fa-user-lock me-2"></i> Login Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 3200; top: 8px !important;"></div>
+
+    <!-- TOMBOL FLOATING PEMBUKA SIDEBAR SAAT Deringkas/Ditutup -->
+    <button type="button" id="btn-toggle-sidebar-floating" class="d-none" onclick="toggleSidebar(true)" title="Buka Panel Navigasi Portal Peta">
+        <i class="fa-solid fa-bars text-primary"></i>
+        <span>Portal Peta</span>
+    </button>
+
+    <!-- AREA UTAMA PETA -->
+    <div id="map-container"><div id="map" role="application" aria-label="Peta Interaktif GIS"></div></div>
+
+    <!-- SIDEBAR KIRI -->
+    <aside id="sidebar-main" class="sidebar-main glass-panel p-3" aria-label="Navigasi Utama Portal GIS">
+        <div class="sidebar-resize-handle" id="sidebar-resizer" title="Tarik untuk mengubah lebar panel"></div>
+
+        <!-- Header Identitas & Akses -->
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="m-0 fw-bold d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-map text-primary"></i>
+                    <span>Portal Peta</span>
+                </h5>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" id="btn-login" class="btn btn-sm btn-primary shadow-sm fw-bold" onclick="modalLogin.show()" title="Login Admin">
+                    <i class="fa-solid fa-user-lock me-1"></i> Login
+                </button>
+                <button type="button" id="btn-logout" class="btn btn-sm btn-danger shadow-sm fw-bold d-none" onclick="logoutAdmin()" title="Keluar dari Mode Admin">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Keluar
+                </button>
+                <button type="button" id="btn-collapse-sidebar" class="btn btn-sm btn-outline-secondary px-2" onclick="toggleSidebar(false)" title="Sembunyikan Sidebar">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bar Tema (Light / Dark / System) & Status Sinkronisasi -->
+        <div class="portal-meta-bar">
+            <div class="theme-pill-group" role="group" aria-label="Pilih Tema Tampilan">
+                <button type="button" class="theme-pill-btn" id="theme-btn-light" onclick="setAppTheme('light')" title="Mode Terang (Light Mode)">
+                    <i class="fa-solid fa-sun"></i> Terang
+                </button>
+                <button type="button" class="theme-pill-btn active" id="theme-btn-dark" onclick="setAppTheme('dark')" title="Mode Gelap (Dark Mode)">
+                    <i class="fa-solid fa-moon"></i> Gelap
+                </button>
+                <button type="button" class="theme-pill-btn" id="theme-btn-system" onclick="setAppTheme('system')" title="Ikuti Pengaturan Sistem Perangkat">
+                    <i class="fa-solid fa-desktop"></i> Sistem
+                </button>
+            </div>
+            <div id="sync-status-indicator" class="sync-status-badge sync-saved" title="Status koneksi & sinkronisasi Spreadsheet">
+                <i class="fa-solid fa-cloud-check"></i>
+                <span id="sync-status-text">Tersimpan</span>
+            </div>
+        </div>
+
+        <!-- Informasi Mode Pengunjung -->
+        <div id="public-welcome-text" class="mb-2 p-2 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded text-light" style="font-size: 0.78rem;">
+            <i class="fa-solid fa-circle-info text-primary me-1"></i> Anda dalam mode <b>Pengunjung</b>. Alat gambar & edit dikunci. Silakan login untuk mengelola data GIS.
+        </div>
+
+        <!-- Kotak Kontrol Admin, Draft & Autosync -->
+        <div id="draft-box" class="alert alert-success bg-success bg-opacity-10 border-success border-opacity-25 text-light d-none p-2 mb-2 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="text-success fw-bold m-0" style="font-size: 0.84rem;">
+                    <i class="fa-solid fa-pen-ruler me-1"></i> Mode Admin Aktif
+                </h6>
+                <div class="form-check form-switch m-0" title="Sinkronisasi otomatis ke Spreadsheet setelah perubahan">
+                    <input class="form-check-input" type="checkbox" id="toggle-autosync" onchange="toggleAutoSyncSetting(this.checked)">
+                    <label class="form-check-label small" for="toggle-autosync" style="font-size: 0.7rem;">Auto-Sync</label>
+                </div>
+            </div>
+            <div id="draft-counter" class="fw-bold text-center mb-2 bg-dark rounded p-1 small">0 Objek Draft</div>
+            <div class="d-flex gap-1">
+                <button type="button" class="btn btn-success flex-grow-1 btn-sm shadow-sm fw-semibold" onclick="kirimDraftKeServer()">
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Simpan Permanen
+                </button>
+                <button type="button" id="btn-retry-sync" class="btn btn-warning btn-sm d-none fw-semibold" onclick="retryFailedSync()" title="Coba sinkronkan ulang antrean yang gagal">
+                    <i class="fa-solid fa-rotate"></i> Coba Lagi
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Pencarian Cepat di Sidebar -->
+        <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text custom-input"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
+            <input type="text" id="sidebar-quick-filter" class="form-control custom-input" placeholder="Filter cepat nama / kategori..." oninput="renderMenuKategori()">
+            <button type="button" class="btn btn-outline-secondary" onclick="openLayerLabelModal()" title="Pengaturan Layer & Label Geografis">
+                <i class="fa-solid fa-sliders"></i> Layer & Label
+            </button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <p class="text-secondary small m-0 fw-bold">Navigasi Kategori (<span id="total-objek-counter">0</span>):</p>
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.74rem;" onclick="expandCollapseAllCategories()">Buka/Tutup Semua</button>
+        </div>
+
+        <div id="navigasi-container" class="scroll-area" role="region" aria-label="Daftar Kategori dan Objek Peta">
+            <div class="text-secondary fst-italic small p-2"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Memuat database peta...</div>
+        </div>
+    </aside>
+
+    <!-- OVERLAY PENGUKURAN & KOORDINAT -->
+    <div id="measure-overlay" class="glass-panel py-2 px-3 d-none" style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 1035; text-align: center;">
+        <span id="measure-text" class="fw-bold text-warning small">Mode Ukur Aktif: 0 Meter</span>
+        <button type="button" class="btn btn-sm btn-danger py-0 px-2 ms-2" onclick="stopMeasurement()" title="Hentikan & Hapus Pengukuran">Selesai / Hapus</button>
+    </div>
+
+    <div id="drawing-helper-banner" class="glass-panel py-2 px-3 d-none" style="position: absolute; top: 64px; left: 50%; transform: translateX(-50%); z-index: 1035; text-align: center;">
+        <span id="drawing-helper-text" class="small fw-semibold me-2">Klik pada peta untuk menggambar geometri.</span>
+        <button type="button" class="btn btn-sm btn-success py-0 px-2 me-1" onclick="finishCurrentDrawing()"><i class="fa-solid fa-check me-1"></i>Selesaikan Gambar</button>
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="cancelCurrentDrawing()"><i class="fa-solid fa-xmark me-1"></i>Batal Menggambar</button>
+    </div>
+
+    <div id="coord-overlay" class="glass-panel py-1 px-3 d-none" style="position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%); z-index: 1025; font-size: 0.76rem;">
+        <i class="fa-solid fa-crosshairs text-primary me-1"></i>
+        Koordinat Kursor — Lat: <strong id="hover-lat">-</strong> | Lng: <strong id="hover-lng">-</strong>
+        <button type="button" class="btn btn-link btn-sm p-0 ms-2 text-decoration-none" style="font-size: 0.72rem;" onclick="copyCurrentCursorCoords()">Salin</button>
+    </div>
+
+    <!-- PANEL SURVEI LAPANGAN & PEMETAAN GPS -->
+    <div id="gps-survey-panel" class="glass-panel p-3 gps-survey-panel shadow-lg">
+        <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-2">
+            <h6 class="m-0 fw-bold d-flex align-items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-primary"></i>
+                <span>GPS & Survei Lapangan</span>
+            </h6>
+            <button type="button" class="btn-close btn-close-white" style="font-size: 0.75rem;" onclick="closeGpsSurveyPanel()" aria-label="Tutup Panel GPS"></button>
+        </div>
+
+        <div class="small mb-2 p-2 rounded bg-primary bg-opacity-10 border border-primary border-opacity-25" style="font-size: 0.74rem;">
+            <i class="fa-solid fa-shield-halved text-primary me-1"></i>
+            Lokasi perangkat hanya diakses saat Anda menekan tombol GPS dan tidak dikirim ke Spreadsheet sebelum Anda menyimpan data.
+        </div>
+
+        <!-- Indikator Status GPS, Koordinat Saat Ini & Akurasi -->
+        <div class="p-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-2 small">
+            <div class="d-flex justify-content-between mb-1">
+                <span class="text-secondary">Status GPS:</span>
+                <span id="gps-status-badge" class="badge bg-secondary">Siap Digunakan</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <span class="text-secondary">Koordinat Saat Ini:</span>
+                <span id="gps-current-coords" class="font-monospace fw-bold">-</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-secondary">Estimasi Akurasi GPS:</span>
+                <span id="gps-current-accuracy" class="badge bg-info text-dark">- meter</span>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi Cepat GPS -->
+        <div class="row g-1 mb-2">
+            <div class="col-6">
+                <button type="button" class="btn btn-sm btn-outline-primary w-100 fw-semibold" onclick="locateUser(false)">
+                    <i class="fa-solid fa-location-crosshairs me-1"></i> Lokasi Saya
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-sm btn-outline-info w-100 fw-semibold" onclick="centerMapToLastGps()">
+                    <i class="fa-solid fa-compass me-1"></i> Pusatkan ke GPS
+                </button>
+            </div>
+            <div class="col-12 mt-1">
+                <button type="button" class="btn btn-sm btn-primary w-100 fw-semibold" onclick="addPointFromMyLocation()">
+                    <i class="fa-solid fa-map-pin me-1"></i> Tambahkan Titik dari Lokasi Saya
+                </button>
+            </div>
+        </div>
+
+        <!-- Perekaman Jejak / Batas Wilayah GPS -->
+        <div class="border-top border-secondary border-opacity-25 pt-2 mt-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold small"><i class="fa-solid fa-route text-success me-1"></i> Rekam Batas Wilayah / Jalur</span>
+                <span id="gps-track-timer" class="badge bg-dark border border-secondary font-monospace">00:00</span>
+            </div>
+
+            <div class="row g-2 mb-2 small">
+                <div class="col-6">
+                    <label class="form-label mb-1" style="font-size: 0.7rem;">Bentuk Survei</label>
+                    <select id="gps-survey-geom-type" class="form-select form-select-sm custom-input">
+                        <option value="Polygon">Poligon (Area Wilayah)</option>
+                        <option value="LineString">Garis (Jalur / Jalan)</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="form-label mb-1" style="font-size: 0.7rem;" title="Jarak minimum antar sampel titik (meter)">Min Jarak (m)</label>
+                    <input type="number" id="gps-min-distance" class="form-control form-control-sm custom-input" value="3" min="0" max="200">
+                </div>
+                <div class="col-3">
+                    <label class="form-label mb-1" style="font-size: 0.7rem;" title="Batas maksimum toleransi akurasi (meter)">Maks Akurasi</label>
+                    <input type="number" id="gps-max-accuracy" class="form-control form-control-sm custom-input" value="50" min="5" max="500">
+                </div>
+            </div>
+
+            <div class="d-flex gap-1 mb-2">
+                <button type="button" id="btn-start-gps-record" class="btn btn-sm btn-success flex-grow-1 fw-semibold" onclick="startGpsTrackRecording()">
+                    <i class="fa-solid fa-play me-1"></i> Mulai Rekam Lokasi
+                </button>
+                <button type="button" id="btn-sample-gps-point" class="btn btn-sm btn-outline-light" onclick="recordManualGpsSample()" disabled title="Ambil sampel titik saat ini secara manual">
+                    <i class="fa-solid fa-plus"></i> Titik
+                </button>
+                <button type="button" id="btn-stop-gps-record" class="btn btn-sm btn-danger fw-semibold" onclick="stopGpsTrackRecording()" disabled>
+                    <i class="fa-solid fa-stop me-1"></i> Hentikan Rekaman
+                </button>
+            </div>
+
+            <!-- Daftar Titik Rekaman -->
+            <div class="small d-flex justify-content-between mb-1">
+                <span>Sampel Titik: <strong id="gps-sample-count">0</strong></span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-danger text-decoration-none" style="font-size: 0.72rem;" onclick="clearGpsTrackSamples()">Bersihkan</button>
+            </div>
+            <div id="gps-samples-list" class="border border-secondary border-opacity-25 rounded p-1 mb-2" style="max-height: 110px; overflow-y: auto; font-size: 0.72rem;">
+                <div class="text-secondary fst-italic text-center py-2">Belum ada sampel koordinat terekam.</div>
+            </div>
+
+            <button type="button" id="btn-finish-gps-survey" class="btn btn-sm btn-warning w-100 fw-bold" onclick="finishAndSaveGpsSurvey()" disabled>
+                <i class="fa-solid fa-check-double me-1"></i> Selesaikan Survei & Simpan Hasil
+            </button>
+        </div>
+    </div>
+
+    <!-- MAP MODE SWITCHER (BASEMAP) -->
+    <div class="map-switcher" role="group" aria-label="Pilih Basemap Peta">
+        <button type="button" class="btn-mode active" id="btn-mode-street" onclick="ubahModePeta('street')">Peta Jalan</button>
+        <button type="button" class="btn-mode" id="btn-mode-satellite" onclick="ubahModePeta('satellite')">Satelit Hibrida</button>
+        <button type="button" class="btn-mode" id="btn-mode-outdoors" onclick="ubahModePeta('outdoors')">Topografi</button>
+    </div>
+
+    <!-- DETAIL INFORMATION PANEL -->
+    <div id="detail-box" class="glass-panel p-3 detail-box shadow-lg border-primary border-opacity-50" role="dialog" aria-label="Detail Informasi Objek">
+        <div class="d-flex justify-content-between align-items-start mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+            <div style="max-width: 86%;">
+                <h5 id="detail-nama" class="text-primary fw-bold m-0 text-truncate">Nama Objek</h5>
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                    <span id="detail-kategori" class="badge bg-secondary">Kategori</span>
+                    <span id="detail-status" class="badge bg-success">Status</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.75rem;" onclick="closeDetailBox()" aria-label="Tutup Detail"></button>
+        </div>
+        
+        <div class="detail-body small text-light mb-3" style="max-height: 240px; overflow-y: auto; padding-right: 5px;">
+            <div class="mb-1 text-secondary" style="font-size:0.72rem;">ID Objek: <span id="detail-id" class="text-light font-monospace"></span></div>
+            <div class="mb-2 mt-2"><i class="fa-solid fa-align-left text-primary me-2"></i><span id="detail-deskripsi" class="opacity-75">Deskripsi akan tampil di sini...</span></div>
+            
+            <div id="detail-geom-info" class="p-2 mb-2 rounded bg-dark bg-opacity-50 border border-secondary border-opacity-50"></div>
+            
+            <div class="mb-1"><i class="fa-solid fa-location-crosshairs text-primary me-2"></i><span id="detail-koordinat">Menghitung koordinat...</span></div>
+            <div class="mb-1"><i class="fa-solid fa-clock text-primary me-2"></i>Sinkronisasi: <span id="detail-timestamp"></span></div>
+        </div>
+        
+        <div class="d-flex flex-wrap gap-2 border-top border-secondary border-opacity-25 pt-2 mt-auto">
+            <button type="button" class="btn btn-sm btn-outline-info flex-grow-1 fw-bold shadow-sm" id="btn-zoom-obj" title="Fokus ke Objek">
+                <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Fokus
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary flex-grow-1 fw-bold admin-only-tool d-none shadow-sm" id="btn-reshape-obj" title="Edit Titik/Bentuk Geometri di Peta">
+                <i class="fa-solid fa-vector-square me-1"></i> Edit Geometri
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-warning flex-grow-1 fw-bold admin-only-tool d-none shadow-sm" id="btn-edit-obj" title="Edit Atribut & Warna Objek">
+                <i class="fa-solid fa-pen-to-square me-1"></i> Edit Data
+            </button>
+            <button type="button" class="btn btn-sm btn-danger flex-grow-1 fw-bold admin-only-tool d-none shadow-sm" id="btn-delete-obj" title="Hapus Objek (Soft Delete)">
+                <i class="fa-solid fa-trash me-1"></i> Hapus
+            </button>
+        </div>
+    </div>
+
+    <!-- PANEL KANAN BAWAH: LEGENDA DINAMIS & EKSPOR CEPAT -->
+    <div class="bottom-right-panel glass-panel" id="bottom-legend-panel">
+        <div class="pe-3 border-end border-secondary border-opacity-25 small" style="min-width: 175px;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold"><i class="fa-solid fa-list-ul text-primary me-1"></i> Legenda Peta</span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.7rem;" onclick="toggleLegendContent()" id="btn-toggle-legend">Ringkas</button>
+            </div>
+            <div id="dynamic-legend-body" class="legend-scroll">
+                <div class="d-flex align-items-center mb-1"><i class="fa-solid fa-square me-2" style="color:rgba(13, 110, 253, 0.6);"></i> Area / Poligon</div>
+                <div class="d-flex align-items-center"><i class="fa-solid fa-location-dot me-2 text-primary"></i> Titik Lokasi</div>
+            </div>
+        </div>
+        <div class="d-flex flex-column gap-1">
+            <div class="small fw-bold text-secondary" style="font-size: 0.68rem;">Ekspor Laporan</div>
+            <div class="d-flex gap-1">
+                <button type="button" class="btn btn-dark btn-sm border-secondary shadow-sm d-flex align-items-center gap-1" onclick="openExportModal('jpg')" title="Ekspor Peta ke Gambar JPG/PNG">
+                    <i class="fa-solid fa-camera text-info"></i> <span>JPG/PNG</span>
+                </button>
+                <button type="button" class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1" onclick="openExportModal('pdf')" title="Ekspor Laporan PDF Kartografis">
+                    <i class="fa-solid fa-file-pdf"></i> <span>PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI TINDAKAN BERISIKO -->
+    <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-body p-4 text-center">
+                    <i class="fa-solid fa-circle-exclamation text-warning fs-1 mb-3"></i>
+                    <h6 id="confirm-msg" class="mb-4">Apakah Anda yakin?</h6>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" id="btn-confirm-yes" class="btn btn-danger w-50 fw-bold">Ya, Lanjutkan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PENCARIAN OBJEK & KOORDINAT -->
+    <div class="modal fade" id="modalSearch" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25 p-3">
+                    <h6 class="modal-title fw-bold"><i class="fa-solid fa-magnifying-glass text-primary me-2"></i>Pencarian Lokasi, Objek & Koordinat</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <label class="form-label small fw-semibold" for="search-input">Kata Kunci Nama Objek / Kategori / Koordinat (Lat, Lng)</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="search-input" class="form-control custom-input" placeholder="Misal: Kantor Desa, Puskesmas, atau -8.840, 121.662" oninput="previewSearchResults()">
+                        <button type="button" class="btn btn-primary fw-semibold" onclick="executeSearch()">Cari</button>
+                    </div>
+                    <div id="search-results-list" class="border border-secondary border-opacity-25 rounded p-2" style="max-height: 220px; overflow-y: auto; font-size: 0.82rem;">
+                        <div class="text-secondary small fst-italic">Ketik nama objek, kategori, atau koordinat untuk mencari...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM PROPERTI, KOORDINAT & STYLING GEOMETRI -->
+    <div class="modal fade" id="modalData" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25">
+                    <h5 class="modal-title fw-bold" id="modal-data-title">
+                        <i class="fa-solid fa-map-location-dot text-primary me-2"></i>Data Properti & Styling Geometri
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="batalGambarDraft()" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="form-validation-alert" class="alert alert-danger py-2 px-3 small d-none" role="alert"></div>
+
+                    <div class="row g-3">
+                        <!-- Kolom Kiri: Atribut & Koordinat -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold" for="form-nama">Nama Objek <span class="text-danger">*</span></label>
+                                <input type="text" id="form-nama" class="form-control custom-input" placeholder="Misal: Kantor Desa / Lahan Pertanian" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold" for="form-kategori">Kategori <span class="text-danger">*</span></label>
+                                <select id="form-kategori" class="form-select custom-input" placeholder="Cari atau ketik kategori baru..."></select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold" for="form-koordinat">Koordinat Geometri <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-sm mb-1">
+                                    <input type="text" id="form-koordinat" class="form-control custom-input font-monospace" placeholder="Klik Ambil Peta, GPS, atau ketik Lat, Lng">
+                                    <button class="btn btn-primary" type="button" onclick="tarikKoordinatPeta()" title="Ambil dari geometri yang digambar">
+                                        <i class="fa-solid fa-crosshairs me-1"></i> Ambil
+                                    </button>
+                                    <button class="btn btn-outline-info" type="button" onclick="fillFormWithGpsCoords()" title="Gunakan koordinat GPS perangkat saat ini">
+                                        <i class="fa-solid fa-location-dot me-1"></i> GPS
+                                    </button>
+                                </div>
+                                <div class="row g-2 mt-1" id="manual-latlng-row">
+                                    <div class="col-6">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text custom-input">Lat</span>
+                                            <input type="number" step="any" id="form-manual-lat" class="form-control custom-input" placeholder="-8.840000" oninput="syncManualLatLngToForm()">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text custom-input">Lng</span>
+                                            <input type="number" step="any" id="form-manual-lng" class="form-control custom-input" placeholder="121.662000" oninput="syncManualLatLngToForm()">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="form-gps-accuracy-info" class="small text-info mt-1 d-none" style="font-size: 0.72rem;"></div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold" for="form-deskripsi">Deskripsi & Informasi Pendukung</label>
+                                <textarea id="form-deskripsi" class="form-control custom-input" rows="3" placeholder="Keterangan detail, kondisi lapangan, kapasitas, atau demografi..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Kolom Kanan: Styling Warna, Opacity, Ukuran & Ikon -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded border border-secondary border-opacity-25 bg-dark bg-opacity-25">
+                                <h6 class="fw-bold small mb-2 text-primary"><i class="fa-solid fa-palette me-1"></i> Pengaturan Warna & Simbol</h6>
+
+                                <!-- Palet Warna Terkurasi -->
+                                <div class="mb-2">
+                                    <label class="form-label small mb-1" style="font-size: 0.76rem;">Palet Warna Cepat (Isian / Marker)</label>
+                                    <div class="color-swatch-grid" id="fill-color-swatches"></div>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small mb-1" for="form-warna-area" style="font-size: 0.75rem;">Warna Isian / Marker</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="color" id="form-warna-area" class="form-control form-control-color custom-input" value="#0d6efd" oninput="updateStylePreview()">
+                                            <input type="text" id="form-warna-area-hex" class="form-control custom-input font-monospace" value="#0d6efd" oninput="syncHexInput('area')">
+                                        </div>
+                                    </div>
+                                    <div class="col-6" id="group-warna-garis">
+                                        <label class="form-label small mb-1" for="form-warna-garis" style="font-size: 0.75rem;">Warna Garis Batas</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="color" id="form-warna-garis" class="form-control form-control-color custom-input" value="#6ea8fe" oninput="updateStylePreview()">
+                                            <input type="text" id="form-warna-garis-hex" class="form-control custom-input font-monospace" value="#6ea8fe" oninput="syncHexInput('garis')">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-2" id="group-shape-sliders">
+                                    <div class="col-6">
+                                        <label class="form-label small mb-0" for="form-opacity" style="font-size: 0.74rem;">
+                                            Transparansi Isian: <strong id="label-fill-opacity">0.35</strong>
+                                        </label>
+                                        <input type="range" id="form-opacity" class="form-range" min="0.05" max="0.95" step="0.05" value="0.35" oninput="updateStylePreview()">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small mb-0" for="form-ketebalan-garis" style="font-size: 0.74rem;">
+                                            Ketebalan Garis: <strong id="label-line-width">2.5 px</strong>
+                                        </label>
+                                        <input type="range" id="form-ketebalan-garis" class="form-range" min="1" max="10" step="0.5" value="2.5" oninput="updateStylePreview()">
+                                    </div>
+                                </div>
+
+                                <div class="mb-2" id="group-marker-options">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-8">
+                                            <label class="form-label small mb-1" for="form-icon" style="font-size: 0.75rem;">Ikon Penanda (Visual Picker)</label>
+                                            <select id="form-icon" class="form-select custom-input" placeholder="Cari ikon..."></select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small mb-1" for="form-ukuran-marker" style="font-size: 0.75rem;">Ukuran (<span id="label-marker-size">34</span>px)</label>
+                                            <input type="range" id="form-ukuran-marker" class="form-range" min="24" max="54" step="2" value="34" oninput="updateStylePreview()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pratinjau Visual Sebelum Disimpan -->
+                                <div class="mt-2">
+                                    <div class="small text-secondary mb-1" style="font-size: 0.72rem;">Pratinjau Simbol & Geometri:</div>
+                                    <div class="style-preview-box" id="style-preview-container">
+                                        <div id="preview-marker-sample" class="custom-marker"><i class="fa-solid fa-location-dot"></i></div>
+                                        <div id="preview-polygon-sample" style="width: 110px; height: 42px; border-radius: 6px; border: 2.5px solid #6ea8fe; background: rgba(13,110,253,0.35); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600;">Contoh Area</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 justify-content-between">
+                    <button type="button" class="btn btn-outline-danger" onclick="batalGambarDraft()">
+                        <i class="fa-solid fa-xmark me-1"></i> Batal
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success shadow fw-bold" onclick="simpanKeDraftMemori()">
+                            <i class="fa-solid fa-box-archive me-1"></i> Simpan ke Draft
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PENGATURAN LAYER & LABEL GEOGRAFIS -->
+    <div class="modal fade" id="modalLayerLabel" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25 p-3">
+                    <h6 class="modal-title fw-bold"><i class="fa-solid fa-layer-group text-primary me-2"></i>Pengaturan Layer Peta & Label Geografis</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <h6 class="fw-bold small text-primary mb-2">Visibilitas Layer Peta</h6>
+                    <div class="list-group list-group-flush mb-3 rounded border border-secondary border-opacity-25">
+                        <label class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center small">
+                            <span><i class="fa-solid fa-location-dot text-primary me-2"></i>Layer Titik Lokasi (Markers)</span>
+                            <input class="form-check-input" type="checkbox" id="layer-toggle-markers" checked onchange="applyLayerAndLabelSettings()">
+                        </label>
+                        <label class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center small">
+                            <span><i class="fa-solid fa-draw-polygon text-info me-2"></i>Layer Area & Jalur (Shapes)</span>
+                            <input class="form-check-input" type="checkbox" id="layer-toggle-shapes" checked onchange="applyLayerAndLabelSettings()">
+                        </label>
+                        <label class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center small">
+                            <span><i class="fa-solid fa-map text-warning me-2"></i>Batas Kecamatan Kab. Ende (GADM Reference)</span>
+                            <input class="form-check-input" type="checkbox" id="layer-toggle-gadm" onchange="applyLayerAndLabelSettings()">
+                        </label>
+                        <label class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center small">
+                            <span><i class="fa-solid fa-city text-secondary me-2"></i>Gedung 3D (Zoom &ge; 14)</span>
+                            <input class="form-check-input" type="checkbox" id="layer-toggle-3d" checked onchange="applyLayerAndLabelSettings()">
+                        </label>
+                    </div>
+
+                    <h6 class="fw-bold small text-primary mb-2">Pengaturan Label Geografis pada Peta</h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="label-toggle-visible" checked onchange="applyLayerAndLabelSettings()">
+                        <label class="form-check-label small fw-semibold" for="label-toggle-visible">Tampilkan Nama Objek pada Peta</label>
+                    </div>
+
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <label class="form-label mb-1" for="label-font-size">Ukuran Teks (<span id="lbl-size-val">12</span> px)</label>
+                            <input type="range" id="label-font-size" class="form-range" min="9" max="18" step="1" value="12" oninput="applyLayerAndLabelSettings()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label mb-1" for="label-min-zoom">Zoom Minimum (<span id="lbl-zoom-val">11</span>)</label>
+                            <input type="range" id="label-min-zoom" class="form-range" min="8" max="17" step="0.5" value="11" oninput="applyLayerAndLabelSettings()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label mb-1" for="label-text-color">Warna Teks Label</label>
+                            <input type="color" id="label-text-color" class="form-control form-control-color custom-input w-100" value="#ffffff" oninput="applyLayerAndLabelSettings()">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label mb-1" for="label-halo-color">Warna Outline / Halo</label>
+                            <input type="color" id="label-halo-color" class="form-control form-control-color custom-input w-100" value="#121212" oninput="applyLayerAndLabelSettings()">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="label-allow-overlap" onchange="applyLayerAndLabelSettings()">
+                                <label class="form-check-label small" for="label-allow-overlap">Izinkan label saling tumpang tindih (matikan untuk mencegah tabrakan label)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EKSPOR LAPORAN KARTOGRAFIS (JPG / PNG / PDF) -->
+    <div class="modal fade" id="modalExport" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25 p-3">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-export text-primary me-2"></i>Studio Ekspor Peta & Laporan Kartografis</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="row g-3 small">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold" for="export-title">Judul Peta / Laporan</label>
+                                <input type="text" id="export-title" class="form-control form-control-sm custom-input" value="PETA INFORMASI GEOGRAFIS TATA RUANG WILAYAH">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold" for="export-subtitle">Subjudul / Nama Wilayah</label>
+                                <input type="text" id="export-subtitle" class="form-control form-control-sm custom-input" value="Kabupaten Ende - Provinsi Nusa Tenggara Timur">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold" for="export-agency">Identitas Instansi / Unit Kerja</label>
+                                <input type="text" id="export-agency" class="form-control form-control-sm custom-input" value="Portal GIS Terpadu - Tata Ruang Wilayah">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold" for="export-author">Catatan Pembuat / Sumber Data</label>
+                                <input type="text" id="export-author" class="form-control form-control-sm custom-input" value="Sumber: Database Spreadsheet GIS & Survei Lapangan">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="export-format">Format File</label>
+                                    <select id="export-format" class="form-select form-select-sm custom-input">
+                                        <option value="pdf">Dokumen Laporan PDF (.pdf)</option>
+                                        <option value="jpg">Gambar Peta JPG (.jpg)</option>
+                                        <option value="png">Gambar Peta PNG (.png)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="export-orientation">Orientasi</label>
+                                    <select id="export-orientation" class="form-select form-select-sm custom-input">
+                                        <option value="landscape">Landscape (Mendatar)</option>
+                                        <option value="portrait">Portrait (Tegak)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="export-resolution">Kualitas Resolusi</label>
+                                    <select id="export-resolution" class="form-select form-select-sm custom-input">
+                                        <option value="1">Standar (1x Cepat)</option>
+                                        <option value="1.5" selected>Tinggi (1.5x Presentasi)</option>
+                                        <option value="2">Ultra (2x Cetak Detail)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="export-filter-scope">Cakupan Data Tabel</label>
+                                    <select id="export-filter-scope" class="form-select form-select-sm custom-input">
+                                        <option value="all">Seluruh Objek Aktif</option>
+                                        <option value="selected">Hanya Objek Terpilih Saat Ini</option>
+                                        <option value="category">Filter Kategori Tertentu</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-2 d-none" id="export-category-filter-wrap">
+                                <label class="form-label fw-semibold" for="export-category-select">Pilih Kategori</label>
+                                <select id="export-category-select" class="form-select form-select-sm custom-input"></select>
+                            </div>
+
+                            <div class="p-2 rounded border border-secondary border-opacity-25 mt-2">
+                                <div class="fw-semibold mb-1">Komponen Kartografis yang Disertakan:</div>
+                                <div class="row g-1">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="exp-inc-legend" checked>
+                                            <label class="form-check-label" for="exp-inc-legend">Legenda Simbol</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="exp-inc-scale" checked>
+                                            <label class="form-check-label" for="exp-inc-scale">Skala & Arah Utara</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="exp-inc-extent" checked>
+                                            <label class="form-check-label" for="exp-inc-extent">Koordinat Batas Peta</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="exp-inc-labels" checked>
+                                            <label class="form-check-label" for="exp-inc-labels">Label Nama Objek</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25 justify-content-between">
+                    <span id="export-progress-status" class="small text-info"></span>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                        <button type="button" id="btn-run-export" class="btn btn-primary btn-sm fw-bold px-3" onclick="executeCartographicExport()">
+                            <i class="fa-solid fa-download me-1"></i> Proses & Unduh Ekspor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPOR & EKSPOR GEOJSON -->
+    <div class="modal fade" id="modalGeoJSON" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25 p-3">
+                    <h6 class="modal-title fw-bold"><i class="fa-solid fa-file-code text-primary me-2"></i>Impor & Ekspor Data GeoJSON</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body p-3 small">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="geojson-file-input">Pilih File GeoJSON (.geojson / .json)</label>
+                        <input type="file" id="geojson-file-input" class="form-control form-control-sm custom-input" accept=".geojson,.json,application/geo+json,application/json" onchange="handleGeoJSONFileSelect(event)">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" for="geojson-text-area">Atau Tempel (Paste) Struktur GeoJSON</label>
+                        <textarea id="geojson-text-area" class="form-control custom-input font-monospace" rows="5" placeholder='{"type":"FeatureCollection","features":[...]}' style="font-size: 0.75rem;"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-info btn-sm flex-grow-1 fw-semibold" onclick="exportAllDataAsGeoJSON()">
+                            <i class="fa-solid fa-file-arrow-down me-1"></i> Unduh GeoJSON Saat Ini
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm flex-grow-1 fw-semibold" onclick="importGeoJSONFromModal()">
+                            <i class="fa-solid fa-file-import me-1"></i> Impor ke Peta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LOGIN ADMIN -->
+    <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header border-secondary border-opacity-25 p-3">
+                    <h6 class="modal-title fw-bold"><i class="fa-solid fa-user-shield text-primary me-2"></i>Akses Admin GIS</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="mb-2">
+                        <label class="form-label small mb-1" for="login-user">Username</label>
+                        <input type="text" id="login-user" class="form-control custom-input" placeholder="Masukkan username admin">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small mb-1" for="login-pass">Password</label>
+                        <input type="password" id="login-pass" class="form-control custom-input" placeholder="Masukkan password" onkeydown="if(event.key==='Enter') prosesLogin()">
+                    </div>
+                    <button type="button" class="btn btn-primary w-100 fw-bold" onclick="prosesLogin()">
+                        <i class="fa-solid fa-right-to-bracket me-1"></i> Masuk
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

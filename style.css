@@ -1,0 +1,1043 @@
+/* ==========================================================================
+   PORTAL GIS TERPADU - DESIGN SYSTEM & RESPONSIVE STYLESHEET (style.css)
+   Mendukung: Dark Mode (Default Karakter Asli), Light Mode, & System Mode
+   Responsif: Desktop, Laptop, Tablet, Smartphone (Android & iPhone)
+   ========================================================================== */
+
+:root,
+[data-theme="dark"] {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --primary-soft: rgba(13, 110, 253, 0.18);
+    --accent-color: #6ea8fe;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+
+    --bg-app: #121212;
+    --bg-glass: rgba(24, 28, 34, 0.92);
+    --bg-glass-strong: rgba(20, 23, 28, 0.97);
+    --bg-surface: #212529;
+    --bg-elevated: #2b3035;
+    --bg-subtle: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.10);
+    --bg-input: #2b3035;
+
+    --text-primary: #f8f9fa;
+    --text-secondary: #adb5bd;
+    --text-muted: #868e96;
+    --text-on-primary: #ffffff;
+
+    --border-glass: rgba(255, 255, 255, 0.14);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-input: #495057;
+
+    --shadow-panel: 0 10px 32px rgba(0, 0, 0, 0.55);
+    --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.40);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --marker-bg: #212529;
+    --marker-border: #6ea8fe;
+    --tooltip-bg: #18181b;
+    --tooltip-text: #f8f9fa;
+    --scrollbar-thumb: #495057;
+    --sidebar-width: 360px;
+}
+
+[data-theme="light"] {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --primary-soft: rgba(13, 110, 253, 0.12);
+    --accent-color: #0d6efd;
+    --success-color: #157347;
+    --warning-color: #d97706;
+    --danger-color: #dc3545;
+    --info-color: #0891b2;
+
+    --bg-app: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.94);
+    --bg-glass-strong: rgba(255, 255, 255, 0.98);
+    --bg-surface: #ffffff;
+    --bg-elevated: #f8fafc;
+    --bg-subtle: rgba(15, 23, 42, 0.04);
+    --bg-hover: rgba(15, 23, 42, 0.08);
+    --bg-input: #ffffff;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-on-primary: #ffffff;
+
+    --border-glass: rgba(15, 23, 42, 0.14);
+    --border-subtle: rgba(15, 23, 42, 0.08);
+    --border-input: #cbd5e1;
+
+    --shadow-panel: 0 10px 30px rgba(15, 23, 42, 0.15);
+    --shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.12);
+
+    --marker-bg: #ffffff;
+    --marker-border: #0d6efd;
+    --tooltip-bg: #0f172a;
+    --tooltip-text: #f8fafc;
+    --scrollbar-thumb: #94a3b8;
+}
+
+@media (prefers-color-scheme: light) {
+    [data-theme="system"] {
+        --primary-color: #0d6efd;
+        --primary-hover: #0b5ed7;
+        --primary-soft: rgba(13, 110, 253, 0.12);
+        --accent-color: #0d6efd;
+        --success-color: #157347;
+        --warning-color: #d97706;
+        --danger-color: #dc3545;
+        --info-color: #0891b2;
+
+        --bg-app: #f1f5f9;
+        --bg-glass: rgba(255, 255, 255, 0.94);
+        --bg-glass-strong: rgba(255, 255, 255, 0.98);
+        --bg-surface: #ffffff;
+        --bg-elevated: #f8fafc;
+        --bg-subtle: rgba(15, 23, 42, 0.04);
+        --bg-hover: rgba(15, 23, 42, 0.08);
+        --bg-input: #ffffff;
+
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --text-on-primary: #ffffff;
+
+        --border-glass: rgba(15, 23, 42, 0.14);
+        --border-subtle: rgba(15, 23, 42, 0.08);
+        --border-input: #cbd5e1;
+
+        --shadow-panel: 0 10px 30px rgba(15, 23, 42, 0.15);
+        --shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.12);
+
+        --marker-bg: #ffffff;
+        --marker-border: #0d6efd;
+        --tooltip-bg: #0f172a;
+        --tooltip-text: #f8fafc;
+        --scrollbar-thumb: #94a3b8;
+    }
+}
+
+/* ==========================================================================
+   BASE & RESET
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+#map-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Adaptasi utilitas Bootstrap pada Light/Dark Mode */
+[data-theme="light"] .text-light,
+[data-theme="system"].resolved-light .text-light {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-secondary,
+[data-theme="system"].resolved-light .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .bg-dark,
+[data-theme="system"].resolved-light .bg-dark {
+    background-color: var(--bg-elevated) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .btn-close-white,
+[data-theme="system"].resolved-light .btn-close-white {
+    filter: none !important;
+}
+
+/* Fokus aksesibilitas keyboard */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   GLASS PANEL & KOMPONEN UTAMA
+   ========================================================================== */
+.glass-panel {
+    background: var(--bg-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    color: var(--text-primary);
+    z-index: 10;
+}
+
+/* ==========================================================================
+   SIDEBAR NAVIGASI KIRI (RESIZABLE & COLLAPSIBLE)
+   ========================================================================== */
+.sidebar-main {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    bottom: 16px;
+    width: var(--sidebar-width);
+    min-width: 290px;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    z-index: 1020;
+}
+
+.sidebar-main.collapsed {
+    transform: translateX(calc(-100% - 24px));
+    pointer-events: none;
+    opacity: 0;
+}
+
+.sidebar-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: ew-resize;
+    background: transparent;
+    transition: background 0.2s;
+}
+
+.sidebar-resize-handle:hover {
+    background: var(--primary-color);
+}
+
+#btn-toggle-sidebar-floating {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1015;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-glass);
+    background: var(--bg-glass);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#btn-toggle-sidebar-floating:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* Theme & Sync Bar inside Sidebar */
+.portal-meta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    font-size: 0.76rem;
+}
+
+.theme-pill-group {
+    display: inline-flex;
+    background: var(--bg-elevated);
+    border-radius: 20px;
+    padding: 2px;
+    border: 1px solid var(--border-subtle);
+}
+
+.theme-pill-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 3px 8px;
+    border-radius: 16px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.theme-pill-btn.active {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.sync-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.72rem;
+}
+
+.sync-saved { background: rgba(25, 135, 84, 0.18); color: #2ecc71; border: 1px solid rgba(25, 135, 84, 0.35); }
+.sync-pending { background: rgba(255, 193, 7, 0.18); color: #f59e0b; border: 1px solid rgba(255, 193, 7, 0.35); }
+.sync-saving { background: rgba(13, 202, 240, 0.18); color: #0dcaf0; border: 1px solid rgba(13, 202, 240, 0.35); }
+.sync-error { background: rgba(220, 53, 69, 0.18); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.35); }
+
+[data-theme="light"] .sync-saved { color: #157347; }
+[data-theme="light"] .sync-pending { color: #b45309; }
+[data-theme="light"] .sync-saving { color: #0369a1; }
+[data-theme="light"] .sync-error { color: #b91c1c; }
+
+/* Kategori & Item di Sidebar */
+.kategori-header {
+    background: var(--bg-subtle);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.86rem;
+    transition: background 0.2s, border-color 0.2s;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.kategori-header:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-glass);
+}
+
+.submenu-container {
+    display: none;
+    padding-left: 10px;
+    margin-bottom: 12px;
+    border-left: 2px solid var(--border-glass);
+}
+
+.submenu-container.aktif {
+    display: block;
+    animation: fadeIn 0.25s ease;
+}
+
+.lokasi-item {
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    border-left: 3px solid var(--primary-color);
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+}
+
+.lokasi-item:hover,
+.lokasi-item.selected-item {
+    background: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.lokasi-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    font-size: 0.95rem;
+    color: var(--accent-color);
+    background: var(--primary-soft);
+    flex-shrink: 0;
+}
+
+.scroll-area {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 4px;
+}
+
+.scroll-area::-webkit-scrollbar { width: 6px; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+
+/* ==========================================================================
+   TOOLBAR GIS BERLABEL JELAS & KONSISTEN (FLOATING ACCORDION DOCK)
+   ========================================================================== */
+.mapboxgl-ctrl-top-right {
+    z-index: 1030 !important;
+    margin-top: 16px !important;
+    margin-right: 16px !important;
+    max-height: calc(100vh - 115px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.gis-toolbar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 224px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    overflow-x: visible;
+    padding: 2px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.gis-toolbar-wrapper::-webkit-scrollbar { width: 4px; }
+.gis-toolbar-wrapper::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 8px; }
+
+.gis-toolbar-wrapper .tool-group {
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-glass);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    flex-shrink: 0;
+}
+
+.gis-toolbar-wrapper .tool-group:not(.group-collapsed) {
+    border-color: rgba(13, 110, 253, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.gis-toolbar-wrapper .tool-group-header {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    user-select: none;
+    color: var(--text-primary) !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    transition: background-color 0.18s ease !important;
+}
+
+.gis-toolbar-wrapper .tool-group.group-collapsed .tool-group-header {
+    border-bottom: none !important;
+}
+
+.gis-toolbar-wrapper .tool-group-header:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+.gis-toolbar-wrapper .tool-group-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.gis-toolbar-wrapper .tool-group-badge-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--primary-soft);
+    color: var(--accent-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.gis-toolbar-wrapper .tool-group:not(.group-collapsed) .tool-group-badge-icon {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.gis-toolbar-wrapper .tool-group-chevron {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.25s ease;
+}
+
+.gis-toolbar-wrapper .tool-group:not(.group-collapsed) .tool-group-chevron {
+    transform: rotate(180deg);
+    color: var(--accent-color);
+}
+
+.gis-toolbar-wrapper .tool-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.14);
+}
+
+[data-theme="light"] .gis-toolbar-wrapper .tool-group-body,
+[data-theme="system"].resolved-light .gis-toolbar-wrapper .tool-group-body {
+    background: rgba(15, 23, 42, 0.03);
+}
+
+.gis-toolbar-wrapper .tool-group-body::-webkit-scrollbar { width: 4px; }
+.gis-toolbar-wrapper .tool-group-body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 6px; }
+
+.gis-toolbar-wrapper .tool-group.group-collapsed .tool-group-body {
+    display: none !important;
+}
+
+/* Override ketat terhadap .mapboxgl-ctrl-group button { width: 29px; height: 29px; } */
+.gis-toolbar-wrapper button.gis-toolbar-btn {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 33px !important;
+    padding: 4px 9px !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 9px !important;
+    color: var(--text-primary) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    cursor: pointer !important;
+    transition: background-color 0.16s ease, transform 0.16s ease, border-color 0.16s ease !important;
+    position: relative;
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn .tool-icon-box {
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 7px !important;
+    background: var(--bg-subtle) !important;
+    color: var(--accent-color) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.82rem !important;
+    flex-shrink: 0 !important;
+    transition: all 0.16s ease !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn .tool-label {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex: 1 1 auto !important;
+    color: inherit !important;
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn:hover:not(:disabled) {
+    background-color: var(--bg-hover) !important;
+    border-color: var(--border-subtle) !important;
+    transform: translateX(2px);
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn:hover:not(:disabled) .tool-icon-box {
+    background: var(--primary-soft) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Varian warna ikon untuk aksi spesifik */
+.gis-toolbar-wrapper button.gis-toolbar-btn.tool-variant-danger .tool-icon-box {
+    color: #ff6b6b !important;
+    background: rgba(220, 53, 69, 0.14) !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn.tool-variant-success .tool-icon-box {
+    color: #2ecc71 !important;
+    background: rgba(25, 135, 84, 0.16) !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn.active-tool {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-hover) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 10px rgba(13, 110, 253, 0.35) !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn.active-tool .tool-icon-box {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+}
+
+.gis-toolbar-wrapper button.gis-toolbar-btn:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+}
+
+/* Sembunyikan kontrol bawaan MapboxDraw yang kosong agar tidak muncul kotak putih di pojok kanan bawah */
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:empty {
+    display: none !important;
+}
+
+/* ==========================================================================
+   BASEMAP SWITCHER & BOTTOM PANELS
+   ========================================================================== */
+.map-switcher {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: var(--bg-glass);
+    border-radius: 30px;
+    padding: 4px;
+    box-shadow: var(--shadow-sm);
+    z-index: 1010;
+    border: 1px solid var(--border-glass);
+}
+
+.btn-mode {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.btn-mode.active {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.bottom-right-panel {
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    z-index: 1015;
+    padding: 12px 16px;
+    max-width: 420px;
+}
+
+.legend-scroll {
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* ==========================================================================
+   MARKER & POPUP STYLING
+   ========================================================================== */
+.custom-marker {
+    background: var(--marker-bg);
+    border: 2.5px solid var(--marker-border);
+    color: var(--marker-border);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.custom-marker:hover {
+    transform: scale(1.16);
+    z-index: 999;
+}
+
+.marker-draft {
+    border-style: dashed !important;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.35), 0 4px 12px rgba(0,0,0,0.45);
+}
+
+.marker-draft-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #198754;
+    border: 2px solid var(--marker-bg);
+}
+
+.gps-live-marker {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #0d6efd;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 6px rgba(13, 110, 253, 0.32);
+    animation: pulseGps 2s infinite;
+}
+
+@keyframes pulseGps {
+    0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.55); }
+    70% { box-shadow: 0 0 0 14px rgba(13, 110, 253, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+}
+
+/* ==========================================================================
+   DETAIL PANEL & GPS SURVEY PANEL
+   ========================================================================== */
+.detail-box {
+    position: absolute;
+    bottom: 20px;
+    left: 392px;
+    width: 380px;
+    display: none;
+    z-index: 1040;
+}
+
+.gps-survey-panel {
+    position: absolute;
+    top: 16px;
+    left: 392px;
+    width: 370px;
+    z-index: 1040;
+    display: none;
+}
+
+.detail-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) transparent;
+}
+
+/* ==========================================================================
+   MODALS, FORMS & COLOR PALETTE SWATCHES
+   ========================================================================== */
+.custom-modal-content {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+}
+
+.custom-input {
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border-input) !important;
+    color: var(--text-primary) !important;
+}
+
+.custom-input:focus {
+    background: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px var(--primary-soft) !important;
+}
+
+.custom-input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* TomSelect Theme Adaptation */
+.ts-wrapper.custom-input { padding: 0 !important; border: none !important; background: transparent !important; }
+.ts-control {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-input) !important;
+    color: var(--text-primary) !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    min-height: 40px;
+}
+.ts-control > input { color: var(--text-primary) !important; font-size: 0.85rem !important; }
+.ts-dropdown {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-input) !important;
+    color: var(--text-primary) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--shadow-panel) !important;
+    z-index: 3000 !important;
+    font-size: 0.85rem;
+}
+.ts-dropdown .optgroup-header {
+    background-color: var(--bg-elevated) !important;
+    color: var(--accent-color) !important;
+    font-weight: bold !important;
+    font-size: 0.75rem !important;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.ts-dropdown .option { color: var(--text-primary) !important; padding: 7px 12px; }
+.ts-dropdown .option:hover, .ts-dropdown .option.active {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+.ts-control.has-items .item {
+    background: var(--primary-color) !important;
+    color: #ffffff !important;
+    border-radius: 4px;
+    border: none;
+    padding: 2px 8px;
+}
+
+/* Color Swatch Picker */
+.color-swatch-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.color-swatch-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0;
+}
+
+.color-swatch-btn:hover {
+    transform: scale(1.15);
+}
+
+.color-swatch-btn.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px var(--primary-color);
+    transform: scale(1.15);
+}
+
+/* Style Preview Box */
+.style-preview-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-subtle);
+    border: 1px dashed var(--border-input);
+    min-height: 68px;
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATION
+   ========================================================================== */
+.custom-toast {
+    background: var(--bg-glass-strong);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 11px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-panel);
+    animation: slideDownToast 0.35s ease forwards;
+    font-size: 0.84rem;
+    font-weight: 500;
+    max-width: 92vw;
+}
+
+.toast-success { border-left: 4px solid var(--success-color); }
+.toast-warning { border-left: 4px solid var(--warning-color); }
+.toast-danger { border-left: 4px solid var(--danger-color); }
+.toast-info { border-left: 4px solid var(--primary-color); }
+.custom-toast.hide { animation: fadeOutToast 0.35s ease forwards; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDownToast { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeOutToast { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-18px); } }
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS (TABLET & SMARTPHONE PORTRAIT / LANDSCAPE)
+   ========================================================================== */
+
+/* Tablet (<= 1024px) */
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 320px;
+    }
+    .detail-box,
+    .gps-survey-panel {
+        left: 348px;
+        width: 330px;
+    }
+    .gis-toolbar-wrapper {
+        width: 210px;
+    }
+}
+
+/* Smartphone & Layar Kecil (<= 768px) */
+@media (max-width: 768px) {
+    /* Sidebar berubah menjadi Bottom Sheet / Drawer yang tidak menghalangi peta penuh */
+    .sidebar-main {
+        top: auto;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        width: calc(100% - 16px) !important;
+        max-width: none;
+        min-width: 0;
+        max-height: 54vh;
+        border-radius: 18px;
+        z-index: 1050;
+    }
+
+    .sidebar-main.collapsed {
+        transform: translateY(calc(100% + 24px));
+    }
+
+    .sidebar-resize-handle {
+        display: none;
+    }
+
+    /* Toolbar mengambang di kanan atas dengan ukuran kompak & tetap berlabel jelas */
+    .mapboxgl-ctrl-top-right {
+        margin: 0 !important;
+        top: 10px !important;
+        right: 10px !important;
+        max-height: calc(100vh - 160px);
+    }
+
+    .gis-toolbar-wrapper {
+        width: 204px;
+        max-height: calc(100vh - 170px);
+        gap: 6px;
+    }
+
+    .gis-toolbar-wrapper .tool-group-header {
+        min-height: 38px !important;
+        padding: 6px 10px !important;
+        font-size: 0.72rem !important;
+    }
+
+    .gis-toolbar-wrapper button.gis-toolbar-btn {
+        min-height: 36px !important;
+        padding: 5px 8px !important;
+    }
+
+    /* Detail box & GPS panel sebagai Bottom Sheet */
+    .detail-box,
+    .gps-survey-panel {
+        left: 8px;
+        right: 8px;
+        bottom: 64px;
+        top: auto;
+        width: calc(100% - 16px);
+        max-height: 62vh;
+        overflow-y: auto;
+        z-index: 1060;
+    }
+
+    .bottom-right-panel {
+        right: 8px;
+        bottom: 64px;
+        padding: 8px 12px;
+        max-width: calc(100% - 16px);
+    }
+
+    .map-switcher {
+        bottom: 10px;
+        padding: 3px;
+    }
+
+    .btn-mode {
+        padding: 5px 12px;
+        font-size: 0.74rem;
+    }
+
+    #btn-toggle-sidebar-floating {
+        top: 10px;
+        left: 10px;
+        padding: 7px 12px;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-body {
+        max-height: 74dvh;
+        overflow-y: auto;
+    }
+}
+
+/* Orientasi Lanskap pada layar pendek (Mobile Landscape) */
+@media (max-height: 500px) {
+    .sidebar-main {
+        max-height: calc(100vh - 20px);
+        width: 300px !important;
+        top: 10px;
+        bottom: 10px;
+    }
+    .detail-box,
+    .gps-survey-panel {
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+}
